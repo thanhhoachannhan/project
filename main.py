@@ -48,6 +48,7 @@ def page_not_found(error):
     return f'{error.description}', 404
 app.register_blueprint(test_app, url_prefix='/test_app')
 
+#################################################
 api = Blueprint('api', __name__)
 @api.route('/list', methods=['GET'])
 def list():
