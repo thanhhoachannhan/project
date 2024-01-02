@@ -12,6 +12,7 @@ class Poll(db.Model):
     def json(self): return {'id': self.id, 'title': self.title}
 with app.app_context(): db.create_all()
 
+#################################################
 test_app = Blueprint('test_app', __name__)
 @test_app.route('/add', methods=['POST'])
 def add():
