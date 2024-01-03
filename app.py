@@ -6,12 +6,19 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
 app.config.update({'SECRET_KEY': 'secret_key','SQLALCHEMY_DATABASE_URI': f'sqlite:///{basedir}/app.db'})
 db = SQLAlchemy(app)
+
 class Poll(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(64))
     def json(self): return {'id': self.id, 'title': self.title}
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String)
+    price = db.Column(db.Float)
+    description = db.Column(db.Text)
+        
 with app.app_context(): db.create_all()
-
+    
 #################################################
 test_app = Blueprint('test_app', __name__)
 @test_app.route('/add', methods=['POST'])
