@@ -67,7 +67,7 @@ def add():
         return make_response(jsonify({'message': 'success'}), 201)
     return 'Something went wrong'
 app.register_blueprint(api, url_prefix='/api')
-
+#################################################
 @app.route('/', methods=['GET'])
 def hello(): return 'hello'
 
