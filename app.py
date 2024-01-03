@@ -18,6 +18,15 @@ class Product(db.Model):
     description = db.Column(db.Text)
         
 with app.app_context(): db.create_all()
+#################################################
+product_blueprint = Blueprint('product')
+@product_blueprint.route('/', methods=['GET'])
+def list():
+    products = Product.query.all()
+    template = """
+    {{ products }}
+    """
+    return render_template_string(template, products=products)
     
 #################################################
 test_app = Blueprint('test_app', __name__)
