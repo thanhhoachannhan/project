@@ -19,7 +19,7 @@ class Product(db.Model):
         
 with app.app_context(): db.create_all()
 #################################################
-product_blueprint = Blueprint('product')
+product_blueprint = Blueprint('product', __name__)
 @product_blueprint.route('/', methods=['GET'])
 def list():
     products = Product.query.all()
