@@ -27,7 +27,7 @@ def list():
     {{ products }}
     """
     return render_template_string(template, products=products)
-    
+app.register_blueprint(product_blueprint, url_prefix='/products')
 #################################################
 test_app = Blueprint('test_app', __name__)
 @test_app.route('/add', methods=['POST'])
