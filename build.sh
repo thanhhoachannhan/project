@@ -4,7 +4,7 @@ pip install pillow==10.0
 pip install gunicorn==20.0
 
 django-admin startproject project .
-python3 manage.py startapp core
+python manage.py startapp core
 
 echo "##################################################
 import os
@@ -38,9 +38,9 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settins.MEDIA_ROOT)
 " >> project/urls.py
 
-python3 manage.py makemigrations core
-python3 manage.py migrate
-python3 manage.py shell -c "from django.contrib.auth import get_user_model;
+python manage.py makemigrations core
+python manage.py migrate
+python manage.py shell -c "from django.contrib.auth import get_user_model;
 get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
 
 
