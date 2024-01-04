@@ -131,6 +131,6 @@ INSTALLED_APPS += ['core']
 AUTH_USER_MODEL = 'core.User'
 AUTH_PASSWORD_VALIDATORS = []
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIRE, 'static')]
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 
