@@ -28,3 +28,10 @@ python3 manage.py migrate
 python3 manage.py shell -c "from django.contrib.auth import get_user_model;
 get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
 
+mkdir ~/.ssh
+cd ~/.ssh
+ssh-keygen -t rsa -b 4096 -C "thanhhoachannnhan@gmail.com" -P ""
+echo "Host github.com\n\tAddKeysToAgent yes\n\tIdentityFile ~/.ssh/id_rsa" > config
+cd ~/
+
+
