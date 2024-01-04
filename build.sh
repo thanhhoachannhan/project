@@ -38,6 +38,7 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 " >> project/urls.py
 
+python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
 python3 manage.py migrate
 python3 manage.py shell -c "from django.contrib.auth import get_user_model;
