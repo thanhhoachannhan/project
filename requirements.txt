@@ -1,3 +1,4 @@
-flask
-flask_sqlalchemy
+django==5.0
 gunicorn
+pillow
+
