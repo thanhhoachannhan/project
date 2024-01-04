@@ -27,6 +27,6 @@ apps.get_model('auth.Group')._meta.app_label = 'core'
 
 for model in apps.get_app_config('core').get_models():
     try: admin.site.register(model)
-    except AlreadyRegitered: pass
+    except AlreadyRegistered: pass
 
 
