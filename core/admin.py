@@ -23,7 +23,7 @@ class UserAdmin(UserAdmin):
     class Meta:
         ordering = ('date_joined',)
 admin.site.register(User, UserAdmin)
-app.get_model('auth.Group')._meta.app_label = 'core'
+apps.get_model('auth.Group')._meta.app_label = 'core'
 
 for model in apps.get_app_config('core').get_models():
     try: admin.site.register(model)
