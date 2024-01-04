@@ -128,4 +128,5 @@ import os
 ALLOWED_HOSTS = ['*']
 INSTALLED_APPS += ['core']
 AUTH_USER_MODEL = 'core.User'
+AUTH_PASSWORD_VALIDATORS = []
 
