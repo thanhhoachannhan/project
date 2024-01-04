@@ -1,7 +1,12 @@
+sudo apt-get update -y
+sudo apt-get install python3-pip -y
 pip install --upgrade pip
 pip install django==5.0
 pip install pillow==10.0
 pip install gunicorn==20.0
+
+export PATH="$PATH:/home/thanh/.local/bin"
+source ~/.bashrc
 
 django-admin startproject project .
 python3 manage.py startapp core
