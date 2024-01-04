@@ -31,6 +31,7 @@ get_user_model().objects.filter(username='admin').exists() or get_user_model().o
 mkdir ~/.ssh
 cd ~/.ssh
 ssh-keygen -t rsa -b 4096 -C "thanhhoachannnhan@gmail.com" -P ""
+touch config
 echo "Host github.com\n\tAddKeysToAgent yes\n\tIdentityFile ~/.ssh/id_rsa" > config
 cd ~/
 
