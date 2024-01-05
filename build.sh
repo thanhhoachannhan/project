@@ -38,6 +38,71 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 " >> project/urls.py
 
+echo "##################################################
+from django.db import models
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+class User(AbstractBaseUser, PermissionsMixin):
+	username = models.CharField(_('username'), max_length=101, unique=True, validators=[UnicodeUsernameValidator()])
+	fullname = models.CharField(_('fullname'), max_length=100)
+	email = models.EmailField(_('email'))
+	avatar = models.ImageField(_('avatar'), upload_to='avatar')
+	address = models.TextField(_('address'))
+	is_seller = models.BooleanField(_('is_seller'), default=False)
+	is_staff = models.BooleanField(_('is_staff'), default=False)
+	is_active = models.BooleanField(_('is_active'), default=True)
+	date_joined = models.DateTimeField(_('date_joined'), default=timezone.now)
+
+	objects = UserManager()
+
+	EMAIL_FIELD = 'email'
+	USERNAME_FIELD = 'username'
+	# REQUIRED_FIELDS = ['email']
+
+	def __str__(self):
+		return f'self.fullname({self.username})'
+
+	class Meta:
+		verbose_name = _('user')
+		verbose_name_plural = _('users')
+" >> core/models.py
+
+echo "##################################################
+from django.apps import apps
+from django.contrib import admin
+from django.contrib.admin.sites import AlreadyRegistered
+from django.contrib.auth.admin import UserAdmin
+
+from core.models import User
+
+
+class UserAdmin(UserAdmin):
+	fieldsets = (
+		(None, {
+			'fields': ('username', 'password', 'fullname', 'email', 'avatar', 'address', 'is_seller', 'groups')
+		}),
+		('Advanced options', {
+			'classes': ('collapse'),
+			'fields': ('user_permissions', 'is_active', 'is_staff', 'is_superuser')
+		})
+	)
+	list_display = ('username', 'email', 'date_joined')
+	list_filter = ('is_staff', 'is_active')
+	search_fields = ('username__startswith', 'fullname__startswith')
+
+	class Meta:
+		ordering = ('date_joined')
+
+admin.site.register(User, UserAdmin)
+
+for model in apps.get_app_config('core').get_models():
+	try: admin.site.register(model)
+	except AlreadyRegistered: pass
+" >> core/admin.py
+
 python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
 python3 manage.py migrate
