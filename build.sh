@@ -17,6 +17,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
+AUTH_USER_MODEL = 'core.User'
 " >> project/settings.py
 
 echo "##################################################
@@ -45,26 +46,25 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
-class CGroup(models.Model):
-	name = models.CharField(_("name"), max_length=150, unique=True)
+class UserGroup(models.Model):
+	name = models.CharField(_('name'), max_length=150, unique=True)
 	permissions = models.ManyToManyField(
 		Permission,
-		verbose_name=_("permissions"),
+		verbose_name=_('permissions'),
 		blank=True,
 	)
 
 	objects = GroupManager()
 
 	class Meta:
-		verbose_name = _("group")
-		verbose_name_plural = _("groups")
+		verbose_name = _('group')
+		verbose_name_plural = _('groups')
 
 	def __str__(self):
 		return self.name
 
 	def natural_key(self):
 		return (self.name,)
-
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -77,7 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 	is_staff = models.BooleanField(_('is_staff'), default=False)
 	is_active = models.BooleanField(_('is_active'), default=True)
 	date_joined = models.DateTimeField(_('date_joined'), default=timezone.now)
-	groups = models.ManyToManyField(CGroup, verbose_name=_("groups"), blank=True)
+	groups = models.ManyToManyField(UserGroup, verbose_name=_('groups'), blank=True)
 
 	objects = UserManager()
 
@@ -91,18 +91,20 @@ class User(AbstractBaseUser, PermissionsMixin):
 	class Meta:
 		verbose_name = _('user')
 		verbose_name_plural = _('users')
-" >> core/models.py
+" > core/models.py
 
 echo "##################################################
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 
-from core.models import User, CGroup
+from core.models import User, UserGroup
 
 
+@admin.register(User)
 class UserAdmin(UserAdmin):
 	fieldsets = (
 		(None, {
@@ -120,10 +122,9 @@ class UserAdmin(UserAdmin):
 	class Meta:
 		ordering = ('date_joined')
 
-admin.site.register(User, UserAdmin)
 
-# admin.site.unregister(Group)
-@admin.register(CGroup)
+admin.site.unregister(Group)
+@admin.register(UserGroup)
 class CustomGroupAdmin(GroupAdmin):
     fieldsets = (
         (None, {'fields': ('name', 'permissions')}),
@@ -132,7 +133,7 @@ class CustomGroupAdmin(GroupAdmin):
 for model in apps.get_app_config('core').get_models():
 	try: admin.site.register(model)
 	except AlreadyRegistered: pass
-" >> core/admin.py
+" > core/admin.py
 
 echo "##################################################
 all:
@@ -140,16 +141,13 @@ all:
 	rm -fr db.sqlite3
 	python3 manage.py makemigrations core
 	python3 manage.py migrate
-	python3 manage.py shell -c "from django.contrib.auth import get_user_model; \\
-		get_user_model().objects.filter(username='admin').exists() or \\
-		get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
+	python3 manage.py shell -c \"from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')\"
 	python3 manage.py runserver 2000
 " >> makefile
 
 python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
 python3 manage.py migrate
-python3 manage.py shell -c "from django.contrib.auth import get_user_model;
-get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
+python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
 
 
