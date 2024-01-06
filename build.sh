@@ -20,21 +20,22 @@ STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
 AUTH_USER_MODEL = 'core.User'
+TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 " >> project/settings.py
 
 echo "##################################################
-from django.urls import include
+from django.contrib import admin
+from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 
-from core.views import *
-
-urlpatterns += [
+urlpatterns = [
+	path('admin/', admin.site.urls),
 	path('i18n/', include('django.conf.urls.i18n')),
 ]
 urlpatterns += i18n_patterns(
-		
+	path('', include('core.urls')),
 	# prefix_default_language = False
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
@@ -164,6 +165,16 @@ class LoginView(View):
 			return redirect(next_url)
 		return render(request, 'login.html')
 " > core/views.py
+
+echo "##################################################
+from django.urls import path
+from core.views import *
+
+urlpatterns = [
+	path('login', LoginView.as_view(), name='login'),
+	path('home', Home.as_view(), name='home'),
+]
+" > core/urls.py
 
 echo "##################################################
 home
