@@ -40,10 +40,32 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 echo "##################################################
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+class CGroup(models.Model):
+	name = models.CharField(_("name"), max_length=150, unique=True)
+	permissions = models.ManyToManyField(
+		Permission,
+		verbose_name=_("permissions"),
+		blank=True,
+	)
+
+	objects = GroupManager()
+
+	class Meta:
+		verbose_name = _("group")
+		verbose_name_plural = _("groups")
+
+	def __str__(self):
+		return self.name
+
+	def natural_key(self):
+		return (self.name,)
+
+
 
 class User(AbstractBaseUser, PermissionsMixin):
 	username = models.CharField(_('username'), max_length=101, unique=True, validators=[UnicodeUsernameValidator()])
@@ -55,6 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 	is_staff = models.BooleanField(_('is_staff'), default=False)
 	is_active = models.BooleanField(_('is_active'), default=True)
 	date_joined = models.DateTimeField(_('date_joined'), default=timezone.now)
+	groups = models.ManyToManyField(CGroup, verbose_name=_("groups"), blank=True)
 
 	objects = UserManager()
 
@@ -71,13 +94,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 " >> core/models.py
 
 echo "##################################################
+##################################################
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.models import Group
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.utils.translation import gettext_lazy as _
 
-from core.models import User
+from core.models import User, CGroup
 
 
 class UserAdmin(UserAdmin):
@@ -96,14 +120,32 @@ class UserAdmin(UserAdmin):
 
 	class Meta:
 		ordering = ('date_joined')
+
 admin.site.register(User, UserAdmin)
 
-admin.site.unregister(Group)
+# admin.site.unregister(Group)
+@admin.register(CGroup)
+class CustomGroupAdmin(GroupAdmin):
+    fieldsets = (
+        (None, {'fields': ('name', 'permissions')}),
+    )
 
 for model in apps.get_app_config('core').get_models():
 	try: admin.site.register(model)
 	except AlreadyRegistered: pass
 " >> core/admin.py
+
+echo "##################################################
+all:
+	rm -fr migrations
+	rm -fr db.sqlite3
+	python3 manage.py makemigrations core
+	python3 manage.py migrate
+	python3 manage.py shell -c "from django.contrib.auth import get_user_model; \
+		get_user_model().objects.filter(username='admin').exists() or \
+		get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
+	python3 manage.py runserver 2000
+" >> makefile
 
 python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
