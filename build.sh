@@ -75,6 +75,7 @@ from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.models import Group
 
 from core.models import User
 
@@ -95,8 +96,9 @@ class UserAdmin(UserAdmin):
 
 	class Meta:
 		ordering = ('date_joined')
-
 admin.site.register(User, UserAdmin)
+
+admin.site.unregister(Group)
 
 for model in apps.get_app_config('core').get_models():
 	try: admin.site.register(model)
