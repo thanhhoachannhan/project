@@ -94,7 +94,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 " >> core/models.py
 
 echo "##################################################
-##################################################
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
@@ -141,8 +140,8 @@ all:
 	rm -fr db.sqlite3
 	python3 manage.py makemigrations core
 	python3 manage.py migrate
-	python3 manage.py shell -c "from django.contrib.auth import get_user_model; \
-		get_user_model().objects.filter(username='admin').exists() or \
+	python3 manage.py shell -c "from django.contrib.auth import get_user_model; \\
+		get_user_model().objects.filter(username='admin').exists() or \\
 		get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
 	python3 manage.py runserver 2000
 " >> makefile
