@@ -8,7 +8,7 @@ python3 manage.py startapp core
 mkdir staticfiles
 mkdir templates
 
-echo "##################################################
+echo "
 import os
 DEBUG=True
 ALLOWED_HOSTS=['*']
@@ -23,7 +23,7 @@ AUTH_USER_MODEL = 'core.User'
 TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 " >> project/settings.py
 
-echo "##################################################
+echo "
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -42,7 +42,7 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 " >> project/urls.py
 
-echo "##################################################
+echo "
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -96,7 +96,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 		verbose_name_plural = _('users')
 " > core/models.py
 
-echo "##################################################
+echo "
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
@@ -138,7 +138,7 @@ for model in apps.get_app_config('core').get_models():
 	except AlreadyRegistered: pass
 " > core/admin.py
 
-echo "##################################################
+echo "
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.urls import reverse
@@ -166,7 +166,7 @@ class LoginView(View):
 		return render(request, 'login.html')
 " > core/views.py
 
-echo "##################################################
+echo "
 from django.urls import path
 from core.views import *
 
@@ -176,11 +176,11 @@ urlpatterns = [
 ]
 " > core/urls.py
 
-echo "##################################################
+echo "
 home
 " > templates/home.html
 
-echo "##################################################
+echo "
 <form method='post'>
 {% csrf_token %}
 <input type='text' name='username'/>
@@ -189,7 +189,7 @@ echo "##################################################
 </form>
 " > templates/login.html
 
-echo "##################################################
+echo "
 all:
 	rm -fr migrations
 	rm -fr db.sqlite3
@@ -197,10 +197,11 @@ all:
 	python3 manage.py migrate
 	python3 manage.py shell -c \"from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')\"
 	python3 manage.py runserver 2000
+server:
+	python3 manage.py runserver 2000
 " > makefile
 
 python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
 python3 manage.py migrate
 python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
-python3 manage.py runserver 2000
