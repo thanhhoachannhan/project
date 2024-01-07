@@ -40,7 +40,7 @@ urlpatterns += i18n_patterns(
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-" >> project/urls.py
+" > project/urls.py
 
 echo "
 from django.db import models
