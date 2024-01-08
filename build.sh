@@ -1,3 +1,4 @@
+echo "[INFO] - env.build"
 pip install --upgrade pip
 pip install django==5.0
 pip install pillow==10.0
@@ -8,16 +9,15 @@ python3 manage.py startapp core
 mkdir staticfiles
 mkdir templates
 
-echo "
+cat <<text >project/wsgi.py
 import os
 from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
-
 application = get_wsgi_application()
-" > project/wsgi.py
+text
 
-echo "
+cat <<text >>project/settings.py
 import os
 from django.utils.translation import gettext_lazy as _
 DEBUG=True
@@ -70,9 +70,9 @@ MIDDLEWARE = [
 ]
 
 LOGIN_URL = 'login'
-" >> project/settings.py
+text
 
-echo "
+cat <<text >project/urls.py
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
@@ -93,9 +93,9 @@ urlpatterns += i18n_patterns(
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-" > project/urls.py
+text
 
-echo "
+cat <<text >core/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -191,9 +191,9 @@ class CartItem(models.Model):
     variant = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     quantity = models.IntegerField(default=1, null=True, blank=True)
-" > core/models.py
+text
 
-echo "
+cat <<text >core/admin.py
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
@@ -233,9 +233,9 @@ class CustomGroupAdmin(GroupAdmin):
 for model in apps.get_app_config('core').get_models():
     try: admin.site.register(model)
     except AlreadyRegistered: pass
-" > core/admin.py
+text
 
-echo "
+cat <<text >core/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
 from django.urls import reverse
@@ -301,9 +301,9 @@ class AddToCart(LoginRequiredMixin, View):
             'variant_images': variant_images,
             'attributes': attributes
         })
-" > core/views.py
+text
 
-echo "
+cat <<text >core/urls.py
 from django.urls import path
 from core.views import *
 
@@ -313,7 +313,7 @@ urlpatterns = [
     path('home', Home.as_view(), name='home'),
     path('add_to_cart/<int:product_id>', AddToCart.as_view(), name='add_to_cart'),
 ]
-" > core/urls.py
+text
 
 mkdir templates/inc
 cat <<HTML > templates/base.html
@@ -613,8 +613,7 @@ cat <<HTML > templates/login.html
 HTML
 
 mkdir staticfiles/css
-mkdir staticfiles/js
-echo "
+cat <<text >staticfiles/css/main.css
 @import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
 
 html {
@@ -901,18 +900,19 @@ img {
 .product_filter_title_root>a:not(:first-child) {
   border-left: 1px solid black;
 }
-" > staticfiles/css/main.css
+text
 
-echo "
+mkdir staticfiles/js
+cat <<text >staticfiles/js/main.js
 var languageSelection = document.getElementById('language_selection');
 var submitBtn = document.getElementById('submit_btn');
 
 languageSelection.addEventListener('change', function () {
     submitBtn.click();
 });
-" > staticfiles/js/main.js
+text
 
-echo "
+cat <<text >makefile
 all:
 	rm -fr migrations
 	rm -fr db.sqlite3
@@ -922,7 +922,7 @@ all:
 	python3 manage.py runserver 2000
 server:
 	python3 manage.py runserver 2000
-" > makefile
+text
 
 python3 manage.py collectstatic --no-input
 python3 manage.py makemigrations core
