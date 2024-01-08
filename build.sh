@@ -10,6 +10,15 @@ mkdir templates
 
 echo "
 import os
+from django.core.wsgi import get_wsgi_application
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+application = get_wsgi_application()
+" > project/wsgi.py
+
+echo "
+import os
 DEBUG=True
 ALLOWED_HOSTS=['*']
 INSTALLED_APPS += ['core']
