@@ -316,7 +316,7 @@ urlpatterns = [
 text
 
 mkdir templates/inc
-cat <<HTML > templates/base.html
+cat <<HTML >templates/base.html
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
@@ -337,7 +337,7 @@ cat <<HTML > templates/base.html
 </html>
 HTML
 
-cat <<HTML > templates/inc/header.html
+cat <<HTML >templates/inc/header.html
 {% load static %}
 {% load i18n %}
 <div class="header_root {% if request.user.is_authenticated %}header_root_authenticated{% endif %}">
@@ -383,7 +383,7 @@ cat <<HTML > templates/inc/header.html
 </div>
 HTML
 
-cat <<HTML > templates/home.html
+cat <<HTML >templates/home.html
 {% extends 'base.html' %}
 {% load i18n %}
 {% block title %} {% translate 'HOME_TITLE' %} {% endblock %}
@@ -505,7 +505,7 @@ cat <<HTML > templates/home.html
 {% endblock %}
 HTML
 
-cat <<HTML > templates/login.html
+cat <<HTML >templates/login.html
 {% load static %}
 {% load i18n %}
 <!DOCTYPE html>
