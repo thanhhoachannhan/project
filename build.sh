@@ -4,11 +4,13 @@ pip install django==5.0
 pip install pillow==10.0
 pip install gunicorn==20.0
 
+echo "[INFO] - init.build"
 django-admin startproject project .
 python3 manage.py startapp core
 mkdir staticfiles
 mkdir templates
 
+echo "[INFO] - wsgi.build"
 cat <<text >project/wsgi.py
 import os
 from django.core.wsgi import get_wsgi_application
