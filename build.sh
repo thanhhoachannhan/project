@@ -19,6 +19,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 application = get_wsgi_application()
 text
 
+echo "[INFO] - settings.build"
 cat <<text >>project/settings.py
 import os
 from django.utils.translation import gettext_lazy as _
@@ -74,6 +75,7 @@ MIDDLEWARE = [
 LOGIN_URL = 'login'
 text
 
+echo "[INFO] - urls.build"
 cat <<text >project/urls.py
 from django.contrib import admin
 from django.urls import path, include
