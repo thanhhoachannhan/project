@@ -310,6 +310,7 @@ class AddToCart(LoginRequiredMixin, View):
         })
 text
 
+echo "[INFO] - core.urls.build"
 cat <<text >core/urls.py
 from django.urls import path
 from core.views import *
@@ -322,7 +323,10 @@ urlpatterns = [
 ]
 text
 
+echo "[DIR] - template.inc.create"
 mkdir templates/inc
+
+echo "[INFO] - template.base.build"
 cat <<HTML >templates/base.html
 {% load static %}
 {% load i18n %}
