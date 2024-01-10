@@ -99,6 +99,7 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 text
 
+echo "[INFO] - core.models.build"
 cat <<text >core/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
@@ -197,6 +198,7 @@ class CartItem(models.Model):
     quantity = models.IntegerField(default=1, null=True, blank=True)
 text
 
+echo "[INFO] - core.admin.build"
 cat <<text >core/admin.py
 from django.apps import apps
 from django.contrib import admin
@@ -239,6 +241,7 @@ for model in apps.get_app_config('core').get_models():
     except AlreadyRegistered: pass
 text
 
+echo "[INFO] - core.views.build"
 cat <<text >core/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
