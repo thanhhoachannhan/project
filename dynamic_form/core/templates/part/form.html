@@ -1,0 +1,8 @@
+<form hx-post="{% url 'create-contact' %}" 
+        hx-target="#contact-list"
+        hx-swap="beforeend"
+        hx-on="htmx:afterRequest: this.remove()"
+        hx-trigger="click from:#submit-all">
+    {{ form.as_p }}
+    <button hx-on="click: this.closest('form').remove()"> Cancel </button>
+</form>
