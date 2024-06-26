@@ -5,7 +5,20 @@ pip install pillow==10.0
 pip install gunicorn==20.0
 
 echo "[INFO] - init.build"
-django-admin startproject project .
+# django-admin startproject project .
+mkdir project
+
+echo "[INFO] - manage.build"
+cat <<text >manage.py
+import os, sys
+from django.core.management import execute_from_command_line
+
+
+if __name__ == '__main__':
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+    execute_from_command_line(sys.argv)
+text
+
 python3 manage.py startapp core
 mkdir staticfiles
 mkdir templates
@@ -13,27 +26,73 @@ mkdir templates
 echo "[INFO] - wsgi.build"
 cat <<text >project/wsgi.py
 import os
+
 from django.core.wsgi import get_wsgi_application
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 application = get_wsgi_application()
 text
 
-echo "[INFO] - settings.build"
-cat <<text >>project/settings.py
+echo "[INFO] - asgi.build"
+cat <<text >project/asgi.py
 import os
+
+from django.core.asgi import get_asgi_application
+
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
+
+application = get_asgi_application()
+text
+
+echo "[INFO] - settings.build"
+cat <<text >project/settings.py
+import os
+from pathlib import Path
+
 from django.utils.translation import gettext_lazy as _
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 DEBUG=True
+SECRET_KEY = 'dovanthanh'
 ALLOWED_HOSTS=['*']
-INSTALLED_APPS += ['core']
-AUTH_PASSWORD_VALIDATORS = []
+ROOT_URLCONF = 'project.urls'
+WSGI_APPLICATION = 'project.wsgi.application'
+
+DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
+INSTALLED_APPS = DJANGO_APPS + ['core']
+
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
+
+AUTH_PASSWORD_VALIDATORS = []
 AUTH_USER_MODEL = 'core.User'
-TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
+
+CONTEXT_PROCESSORS = [
+    'django.template.context_processors.debug',
+    'django.template.context_processors.request',
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages'
+]
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    'APP_DIRS': True,
+    'OPTIONS': {'context_processors': CONTEXT_PROCESSORS,},
+}]
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_TZ = True
 USE_L10N = True
@@ -930,7 +989,7 @@ all:
 	rm -fr db.sqlite3
 	python3 manage.py makemigrations core
 	python3 manage.py migrate
-	python3 manage.py shell -c \"from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')\"
+	python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
 	python3 manage.py runserver 2000
 server:
 	python3 manage.py runserver 2000
