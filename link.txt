@@ -1,2 +1,0 @@
-backend: TCGK67HP
-frontend: 4AF3GKET
