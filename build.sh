@@ -66,8 +66,9 @@ ROOT_URLCONF = 'project.urls'
 WSGI_APPLICATION = 'project.wsgi.application'
 
 DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
+AUTH_APP = 'authentication'
 INSTALLED_APPS = DJANGO_APPS
-APPS = ['authentication', 'core', 'ecommerce']
+APPS = [AUTH_APP, 'core', 'ecommerce']
 for app in APPS:
     if os.path.exists(BASE_DIR / app):
         INSTALLED_APPS += [app]
@@ -79,7 +80,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
 
 AUTH_PASSWORD_VALIDATORS = []
-if os.path.exists(BASE_DIR / 'authentication'): AUTH_USER_MODEL = 'authentication.User'
+if os.path.exists(BASE_DIR / AUTH_APP) and AUTH_APP in APPS: AUTH_USER_MODEL = f'{AUTH_APP}.User'
 
 CONTEXT_PROCESSORS = [
     'django.template.context_processors.debug',
