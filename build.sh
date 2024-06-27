@@ -4,10 +4,15 @@ pip install django==5.0
 pip install pillow==10.0
 pip install gunicorn==20.0
 
+################################################## == Init
+# ===== #
 echo "[INFO] - init.build"
 # django-admin startproject project .
 mkdir project
+mkdir staticfiles
+mkdir templates
 
+# ===== #
 echo "[INFO] - manage.build"
 cat <<text >manage.py
 import os, sys
@@ -19,10 +24,7 @@ if __name__ == '__main__':
     execute_from_command_line(sys.argv)
 text
 
-python3 manage.py startapp core
-mkdir staticfiles
-mkdir templates
-
+# ===== #
 echo "[INFO] - wsgi.build"
 cat <<text >project/wsgi.py
 import os
@@ -34,6 +36,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 application = get_wsgi_application()
 text
 
+# ===== #
 echo "[INFO] - asgi.build"
 cat <<text >project/asgi.py
 import os
@@ -46,6 +49,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 application = get_asgi_application()
 text
 
+# ===== #
 echo "[INFO] - settings.build"
 cat <<text >project/settings.py
 import os
@@ -62,7 +66,11 @@ ROOT_URLCONF = 'project.urls'
 WSGI_APPLICATION = 'project.wsgi.application'
 
 DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
-INSTALLED_APPS = DJANGO_APPS + ['core']
+INSTALLED_APPS = DJANGO_APPS
+APPS = ['authentication', 'core']
+for app in APPS:
+    if os.path.exists(BASE_DIR / app):
+        INSTALLED_APPS += [app]
 
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
@@ -71,7 +79,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'staticfiles')]
 
 AUTH_PASSWORD_VALIDATORS = []
-AUTH_USER_MODEL = 'core.User'
+if os.path.exists(BASE_DIR / 'authentication'): AUTH_USER_MODEL = 'authentication.User'
 
 CONTEXT_PROCESSORS = [
     'django.template.context_processors.debug',
@@ -134,6 +142,7 @@ MIDDLEWARE = [
 LOGIN_URL = 'login'
 text
 
+# ===== #
 echo "[INFO] - urls.build"
 cat <<text >project/urls.py
 from django.contrib import admin
@@ -152,14 +161,20 @@ urlpatterns = [
 ]
 urlpatterns += i18n_patterns(
     path('', include('core.urls')),
+    path('', include('authentication.urls')),
     # prefix_default_language = False
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 text
 
-echo "[INFO] - core.models.build"
-cat <<text >core/models.py
+################################################## == Auth app
+# ===== #
+python3 manage.py startapp authentication
+
+# ===== #
+echo "[INFO] - authentication.models.build"
+cat <<text >authentication/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
 from django.contrib.auth.validators import UnicodeUsernameValidator
@@ -214,6 +229,102 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def cart_count(self):
         return self.cartitem_set.count()
+text
+
+# ===== #
+echo "[INFO] - authentication.admin.build"
+cat <<text >authentication/admin.py
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin, GroupAdmin
+from django.contrib.auth.models import Group
+from django.utils.translation import gettext_lazy as _
+
+from authentication.models import User, UserGroup
+
+
+@admin.register(User)
+class UserAdmin(UserAdmin):
+    fieldsets = (
+        (None, {
+            'fields': ('username', 'password', 'fullname', 'email', 'avatar', 'address', 'is_seller', 'groups')
+        }),
+        ('Advanced options', {
+            'classes': ('collapse'),
+            'fields': ('user_permissions', 'is_active', 'is_staff', 'is_superuser')
+        })
+    )
+    list_display = ('username', 'email', 'date_joined')
+    list_filter = ('is_staff', 'is_active')
+    search_fields = ('username__startswith', 'fullname__startswith')
+
+    class Meta:
+        ordering = ('date_joined')
+
+
+admin.site.unregister(Group)
+@admin.register(UserGroup)
+class CustomGroupAdmin(GroupAdmin):
+    fieldsets = (
+        (None, {'fields': ('name', 'permissions')}),
+    )
+text
+
+# ===== #
+echo "[INFO] - authentication.views.build"
+cat <<text >authentication/views.py
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout, authenticate
+from django.urls import reverse
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+
+
+class Login(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect(reverse('home'))
+        return render(request, 'login.html')
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            next_url = request.GET.get('next', 'home')
+            return redirect(next_url)
+        return render(request, 'login.html')
+
+class Logout(LoginRequiredMixin, View):
+    def get(self, request):
+        logout(request)
+        next_url = request.GET.get('next', '/')
+        return redirect(next_url)
+text
+
+# ===== #
+echo "[INFO] - authentication.urls.build"
+cat <<text >authentication/urls.py
+from django.urls import path
+from authentication.views import Login, Logout
+
+urlpatterns = [
+    path('login', Login.as_view(), name='login'),
+    path('logout', Logout.as_view(), name='logout'),
+]
+text
+
+################################################## == Core app
+# ===== #
+python3 manage.py startapp core
+
+# ===== #
+echo "[INFO] - core.models.build"
+cat <<text >core/models.py
+from django.db import models
+from django.utils.translation import gettext_lazy as _
+
+from authentication.models import User
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100, null=True, blank=True)
@@ -257,80 +368,28 @@ class CartItem(models.Model):
     quantity = models.IntegerField(default=1, null=True, blank=True)
 text
 
+# ===== #
 echo "[INFO] - core.admin.build"
 cat <<text >core/admin.py
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
-from django.contrib.auth.admin import UserAdmin, GroupAdmin
-from django.contrib.auth.models import Group
-from django.utils.translation import gettext_lazy as _
 
-from core.models import User, UserGroup
-
-
-@admin.register(User)
-class UserAdmin(UserAdmin):
-    fieldsets = (
-        (None, {
-            'fields': ('username', 'password', 'fullname', 'email', 'avatar', 'address', 'is_seller', 'groups')
-        }),
-        ('Advanced options', {
-            'classes': ('collapse'),
-            'fields': ('user_permissions', 'is_active', 'is_staff', 'is_superuser')
-        })
-    )
-    list_display = ('username', 'email', 'date_joined')
-    list_filter = ('is_staff', 'is_active')
-    search_fields = ('username__startswith', 'fullname__startswith')
-
-    class Meta:
-        ordering = ('date_joined')
-
-
-admin.site.unregister(Group)
-@admin.register(UserGroup)
-class CustomGroupAdmin(GroupAdmin):
-    fieldsets = (
-        (None, {'fields': ('name', 'permissions')}),
-    )
 
 for model in apps.get_app_config('core').get_models():
     try: admin.site.register(model)
     except AlreadyRegistered: pass
 text
 
+# ===== #
 echo "[INFO] - core.views.build"
 cat <<text >core/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout, authenticate
-from django.urls import reverse
+from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from core.models import *
+from core.models import Product, Category
 
-
-class Login(View):
-    def get(self, request):
-        if request.user.is_authenticated:
-            return redirect(reverse('home'))
-        return render(request, 'login.html')
-    def post(self, request):
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            next_url = request.GET.get('next', 'home')
-            return redirect(next_url)
-        return render(request, 'login.html')
-
-class Logout(LoginRequiredMixin, View):
-    def get(self, request):
-        logout(request)
-        next_url = request.GET.get('next', '/')
-        return redirect(next_url)
 
 class Home(View):
     def get(self, request):
@@ -369,22 +428,23 @@ class AddToCart(LoginRequiredMixin, View):
         })
 text
 
+# ===== #
 echo "[INFO] - core.urls.build"
 cat <<text >core/urls.py
 from django.urls import path
-from core.views import *
+from core.views import Home, AddToCart
 
 urlpatterns = [
-    path('login', Login.as_view(), name='login'),
-    path('logout', Logout.as_view(), name='logout'),
     path('home', Home.as_view(), name='home'),
     path('add_to_cart/<int:product_id>', AddToCart.as_view(), name='add_to_cart'),
 ]
 text
-
+################################################## == Template
+# ===== #
 echo "[DIR] - template.inc.create"
 mkdir templates/inc
 
+# ===== #
 echo "[INFO] - template.base.build"
 cat <<HTML >templates/base.html
 {% load static %}
@@ -407,6 +467,7 @@ cat <<HTML >templates/base.html
 </html>
 HTML
 
+# ===== #
 cat <<HTML >templates/inc/header.html
 {% load static %}
 {% load i18n %}
@@ -453,6 +514,7 @@ cat <<HTML >templates/inc/header.html
 </div>
 HTML
 
+# ===== #
 cat <<HTML >templates/home.html
 {% extends 'base.html' %}
 {% load i18n %}
@@ -575,6 +637,7 @@ cat <<HTML >templates/home.html
 {% endblock %}
 HTML
 
+# ===== #
 cat <<HTML >templates/login.html
 {% load static %}
 {% load i18n %}
@@ -682,6 +745,7 @@ cat <<HTML >templates/login.html
 </html>
 HTML
 
+# ===== #
 mkdir staticfiles/css
 cat <<text >staticfiles/css/main.css
 @import url('https://fonts.googleapis.com/css2?family=Saira:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
@@ -972,6 +1036,7 @@ img {
 }
 text
 
+# ===== #
 mkdir staticfiles/js
 cat <<text >staticfiles/js/main.js
 var languageSelection = document.getElementById('language_selection');
@@ -982,12 +1047,14 @@ languageSelection.addEventListener('change', function () {
 });
 text
 
+################################################## == Makefile
+# ===== #
 echo "[INFO] - makefile.build"
 cat <<text >makefile
 all:
 	rm -fr migrations
 	rm -fr db.sqlite3
-	python3 manage.py makemigrations core
+	python3 manage.py makemigrations core authentication
 	python3 manage.py migrate
 	python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
 	python3 manage.py runserver 2000
@@ -995,10 +1062,12 @@ server:
 	python3 manage.py runserver 2000
 text
 
+################################################## == Migrate
+# ===== #
 echo "[INFO] - collectstatic"
 python3 manage.py collectstatic --no-input
 echo "[INFO] - migrate"
-python3 manage.py makemigrations core
+python3 manage.py makemigrations core authentication
 python3 manage.py migrate
 echo "[INFO] - superuser.create"
 python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
