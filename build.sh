@@ -1,8 +1,8 @@
 echo "[INFO] - env.build"
-pip install --upgrade pip
-pip install django==5.0
-pip install pillow==10.0
-pip install gunicorn==20.0
+# pip install --upgrade pip
+# pip install django==5.0
+# pip install pillow==10.0
+# pip install gunicorn==20.0
 
 ################################################## == Init
 # ===== #
@@ -1060,6 +1060,8 @@ all:
 	python3 manage.py runserver 2000
 server:
 	python3 manage.py runserver 2000
+clear:
+	find . -mindepth 1 -not -name 'build.sh' -delete
 text
 
 ################################################## == Migrate
