@@ -67,7 +67,7 @@ WSGI_APPLICATION = 'project.wsgi.application'
 
 DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
 INSTALLED_APPS = DJANGO_APPS
-APPS = ['authentication', 'core']
+APPS = ['authentication', 'core', 'ecommerce']
 for app in APPS:
     if os.path.exists(BASE_DIR / app):
         INSTALLED_APPS += [app]
@@ -146,17 +146,18 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
 
-from core.views import Home
+from core.views import Index
 
 
 urlpatterns = [
-    path('', Home.as_view(), name='home'),
+    path('', Index.as_view(), name='index'),
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
 ]
 urlpatterns += i18n_patterns(
     path('', include('core.urls')),
-    path('', include('authentication.urls')),
+    path('authentication/', include('authentication.urls')),
+    path('ecommerce/', include('ecommerce.urls')),
     # prefix_default_language = False
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
@@ -311,10 +312,57 @@ text
 ################################################## == Core app
 # ===== #
 python3 manage.py startapp core
+mkdir templates/core
 
 # ===== #
-echo "[INFO] - core.models.build"
-cat <<text >core/models.py
+echo "[INFO] - core.admin.build"
+cat <<text >core/admin.py
+from django.apps import apps
+from django.contrib import admin
+from django.contrib.admin.sites import AlreadyRegistered
+
+
+for model in apps.get_app_config('core').get_models():
+    try: admin.site.register(model)
+    except AlreadyRegistered: pass
+text
+
+# ===== #
+echo "[INFO] - core.views.build"
+cat <<text >core/views.py
+from django.shortcuts import render
+from django.views import View
+
+
+class Index(View):
+    def get(self, request):
+        return render(request, 'core/index.html')
+text
+
+# ===== #
+echo "[INFO] - core.urls.build"
+cat <<text >core/urls.py
+from django.urls import path
+from core.views import Index
+
+urlpatterns = [
+    path('index', Index.as_view(), name='index'),
+]
+text
+
+# ===== #
+echo "[INFO] - templates/core/index.html"
+cat <<HTML >templates/core/index.html
+Core
+HTML
+
+################################################## == Ecommerce app
+# ===== #
+python3 manage.py startapp ecommerce
+
+# ===== #
+echo "[INFO] - ecommerce.models.build"
+cat <<text >ecommerce/models.py
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -364,26 +412,26 @@ class CartItem(models.Model):
 text
 
 # ===== #
-echo "[INFO] - core.admin.build"
-cat <<text >core/admin.py
+echo "[INFO] - ecommerce.admin.build"
+cat <<text >ecommerce/admin.py
 from django.apps import apps
 from django.contrib import admin
 from django.contrib.admin.sites import AlreadyRegistered
 
 
-for model in apps.get_app_config('core').get_models():
+for model in apps.get_app_config('ecommerce').get_models():
     try: admin.site.register(model)
     except AlreadyRegistered: pass
 text
 
 # ===== #
-echo "[INFO] - core.views.build"
-cat <<text >core/views.py
+echo "[INFO] - ecommerce.views.build"
+cat <<text >ecommerce/views.py
 from django.shortcuts import render
 from django.views import View
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from core.models import Product, Category
+from ecommerce.models import Product, Category
 
 
 class Home(View):
@@ -424,16 +472,17 @@ class AddToCart(LoginRequiredMixin, View):
 text
 
 # ===== #
-echo "[INFO] - core.urls.build"
-cat <<text >core/urls.py
+echo "[INFO] - ecommerce.urls.build"
+cat <<text >ecommerce/urls.py
 from django.urls import path
-from core.views import Home, AddToCart
+from ecommerce.views import Home, AddToCart
 
 urlpatterns = [
     path('home', Home.as_view(), name='home'),
     path('add_to_cart/<int:product_id>', AddToCart.as_view(), name='add_to_cart'),
 ]
 text
+
 ################################################## == Template
 # ===== #
 echo "[DIR] - template.inc.create"
@@ -1049,7 +1098,7 @@ cat <<text >makefile
 all:
 	rm -fr migrations
 	rm -fr db.sqlite3
-	python3 manage.py makemigrations core authentication
+	python3 manage.py makemigrations core authentication ecommerce
 	python3 manage.py migrate
 	python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin')"
 	python3 manage.py runserver 2000
@@ -1064,7 +1113,7 @@ text
 echo "[INFO] - collectstatic"
 python3 manage.py collectstatic --no-input
 echo "[INFO] - migrate"
-python3 manage.py makemigrations core authentication
+python3 manage.py makemigrations core authentication ecommerce
 python3 manage.py migrate
 echo "[INFO] - superuser.create"
 python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
