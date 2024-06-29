@@ -65,13 +65,10 @@ ALLOWED_HOSTS=['*']
 ROOT_URLCONF = 'project.urls'
 WSGI_APPLICATION = 'project.wsgi.application'
 
-DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
 AUTH_APP = 'authentication'
-INSTALLED_APPS = DJANGO_APPS
 APPS = [AUTH_APP, 'core', 'ecommerce']
-for app in APPS:
-    if os.path.exists(BASE_DIR / app):
-        INSTALLED_APPS += [app]
+DJANGO_APPS = [f"django.contrib.{app}" for app in ['admin','auth','contenttypes','sessions','messages','staticfiles']]
+INSTALLED_APPS = DJANGO_APPS + [app for app in APPS if os.path.exists(BASE_DIR / app)]
 
 MEDIA_URL = '/uploads/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'uploads')
