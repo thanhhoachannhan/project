@@ -12,52 +12,11 @@ source ./app_authentication/2_code_file_admin.sh
 source ./app_authentication/3_code_file_views.sh
 source ./app_authentication/4_code_file_urls.sh
 ################################################## == Core app
-# ===== #
-python3 manage.py startapp core
-mkdir templates/core
-
-# ===== #
-echo "[INFO] - core.admin.build"
-cat <<text >core/admin.py
-from django.apps import apps
-from django.contrib import admin
-from django.contrib.admin.sites import AlreadyRegistered
-
-
-for model in apps.get_app_config('core').get_models():
-    try: admin.site.register(model)
-    except AlreadyRegistered: pass
-text
-
-# ===== #
-echo "[INFO] - core.views.build"
-cat <<text >core/views.py
-from django.shortcuts import render
-from django.views import View
-
-
-class Index(View):
-    def get(self, request):
-        return render(request, 'core/index.html')
-text
-
-# ===== #
-echo "[INFO] - core.urls.build"
-cat <<text >core/urls.py
-from django.urls import path
-from core.views import Index
-
-urlpatterns = [
-    path('index', Index.as_view(), name='index'),
-]
-text
-
-# ===== #
-echo "[INFO] - templates/core/index.html"
-cat <<HTML >templates/core/index.html
-Core
-HTML
-
+source ./app_core/0_init_app.sh
+source ./app_core/1_code_file_models.sh
+source ./app_core/2_code_file_admin.sh
+source ./app_core/3_code_file_views.sh
+source ./app_core/4_code_file_urls.sh
 ################################################## == Ecommerce app
 # ===== #
 python3 manage.py startapp ecommerce
