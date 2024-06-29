@@ -7,9 +7,3 @@ urlpatterns = [
     path('index', Index.as_view(), name='index'),
 ]
 text
-
-# ===== #
-echo "[INFO] - templates/core/index.html"
-cat <<HTML >templates/core/index.html
-Core
-HTML

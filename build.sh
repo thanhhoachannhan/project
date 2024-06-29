@@ -11,139 +11,21 @@ source ./app_authentication/1_code_file_models.sh
 source ./app_authentication/2_code_file_admin.sh
 source ./app_authentication/3_code_file_views.sh
 source ./app_authentication/4_code_file_urls.sh
+source ./app_authentication/5_code_templates.sh
 ################################################## == Core app
 source ./app_core/0_init_app.sh
 source ./app_core/1_code_file_models.sh
 source ./app_core/2_code_file_admin.sh
 source ./app_core/3_code_file_views.sh
 source ./app_core/4_code_file_urls.sh
+source ./app_core/5_code_templates.sh
 ################################################## == Ecommerce app
-# ===== #
-python3 manage.py startapp ecommerce
-
-# ===== #
-echo "[INFO] - ecommerce.models.build"
-cat <<text >ecommerce/models.py
-from django.db import models
-from django.utils.translation import gettext_lazy as _
-
-from authentication.models import User
-
-
-class Category(models.Model):
-    name = models.CharField(max_length=100, null=True, blank=True)
-    image = models.ImageField(upload_to='category', null=True, blank=True)
-    def __str__(self):
-        return self.name
-    class Meta:
-      verbose_name_plural = 'categories'
-
-class Product(models.Model):
-    name = models.CharField(max_length=54, null=True, blank=True)
-    full_name = models.CharField(max_length=100, null=True, blank=True)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)
-    price = models.FloatField(null=True, blank=True)
-    short_description = models.TextField(null=True, blank=True)
-    description = models.TextField(null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    def has_variant(self):
-        print(self.variant_set.count())
-        return self.variant_set.count() > 0
-    def image(self):
-        products = ProductImage.objects.all()
-        return products[0].file.url
-    def __str__(self):
-        return self.name
-
-class ProductImage(models.Model):
-    file = models.ImageField(upload_to='product_image', null=True, blank=True)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-
-class Variant(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    image = models.ImageField(upload_to='variant_image', null=True, blank=True)
-    attribute_name = models.CharField(max_length=100, null=True, blank=True)
-    attribute_value = models.CharField(max_length=100, null=True, blank=True)
-
-class CartItem(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
-    variant = models.ForeignKey(Variant, on_delete=models.CASCADE, null=True, blank=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    quantity = models.IntegerField(default=1, null=True, blank=True)
-text
-
-# ===== #
-echo "[INFO] - ecommerce.admin.build"
-cat <<text >ecommerce/admin.py
-from django.apps import apps
-from django.contrib import admin
-from django.contrib.admin.sites import AlreadyRegistered
-
-
-for model in apps.get_app_config('ecommerce').get_models():
-    try: admin.site.register(model)
-    except AlreadyRegistered: pass
-text
-
-# ===== #
-echo "[INFO] - ecommerce.views.build"
-cat <<text >ecommerce/views.py
-from django.shortcuts import render
-from django.views import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-
-from ecommerce.models import Product, Category
-
-
-class Home(View):
-    def get(self, request):
-        products = Product.objects.all()
-        category_id = request.GET.get('category')
-        if category_id:
-            products = Product.objects.filter(category=Category.objects.get(id=category_id))
-        return render(request, 'home.html', {
-            'products': products,
-            'categories': Category.objects.all()[:7],
-        })
-
-class AddToCart(LoginRequiredMixin, View):
-    def get(self, request, product_id):
-        product = Product.objects.get(id=product_id)
-        product_images = product.productimage_set.all()
-        variant_images = []
-        attributes = {}
-        if product.has_variant():
-            variants = product.variant_set.all()
-            for variant in variants:
-                variant_images.append(variant.image)
-                name = variant.attribute_name
-                value = variant.attribute_value
-                if name not in attributes:
-                    attributes[name] = []
-                attributes[name].append(value)
-        print(attributes)
-
-
-        return render(request, 'add_to_cart.html', {
-            'product': product,
-            'product_images': product_images,
-            'variant_images': variant_images,
-            'attributes': attributes
-        })
-text
-
-# ===== #
-echo "[INFO] - ecommerce.urls.build"
-cat <<text >ecommerce/urls.py
-from django.urls import path
-from ecommerce.views import Home, AddToCart
-
-urlpatterns = [
-    path('home', Home.as_view(), name='home'),
-    path('add_to_cart/<int:product_id>', AddToCart.as_view(), name='add_to_cart'),
-]
-text
-
+source ./app_emcommerce/0_init_app.sh
+source ./app_emcommerce/1_code_file_models.sh
+source ./app_emcommerce/2_code_file_admin.sh
+source ./app_emcommerce/3_code_file_views.sh
+source ./app_emcommerce/4_code_file_urls.sh
+source ./app_emcommerce/5_code_templates.sh
 ################################################## == Template
 # ===== #
 echo "[DIR] - template.inc.create"
