@@ -20,12 +20,12 @@ source ./app_core/3_code_file_views.sh
 source ./app_core/4_code_file_urls.sh
 source ./app_core/5_code_templates.sh
 ################################################## == Ecommerce app
-source ./app_emcommerce/0_init_app.sh
-source ./app_emcommerce/1_code_file_models.sh
-source ./app_emcommerce/2_code_file_admin.sh
-source ./app_emcommerce/3_code_file_views.sh
-source ./app_emcommerce/4_code_file_urls.sh
-source ./app_emcommerce/5_code_templates.sh
+source ./app_ecommerce/0_init_app.sh
+source ./app_ecommerce/1_code_file_models.sh
+source ./app_ecommerce/2_code_file_admin.sh
+source ./app_ecommerce/3_code_file_views.sh
+source ./app_ecommerce/4_code_file_urls.sh
+source ./app_ecommerce/5_code_templates.sh
 ################################################## == Template
 # ===== #
 echo "[DIR] - template.inc.create"
