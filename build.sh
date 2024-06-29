@@ -813,9 +813,9 @@ text
 ################################################## == Migrate
 # ===== #
 echo "[INFO] - collectstatic"
-python3 manage.py collectstatic --no-input
+python3 manage.py collectstatic --no-input > /dev/null 2>&1
 echo "[INFO] - migrate"
-python3 manage.py makemigrations core authentication ecommerce
-python3 manage.py migrate
+python3 manage.py makemigrations core authentication ecommerce > /dev/null 2>&1
+python3 manage.py migrate > /dev/null 2>&1
 echo "[INFO] - superuser.create"
 python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
