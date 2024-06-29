@@ -1,10 +1,10 @@
 ################################################## == Init
-soure ./init_project/0_build_env.sh
-soure ./init_project/1_init_project.sh
-soure ./init_project/2_code_file_manage.sh
-soure ./init_project/3_code_file_wsgi_and_asgi.sh
-soure ./init_project/4_code_file_settings.sh
-soure ./init_project/5_code_file_urls.sh
+source ./init_project/0_build_env.sh
+source ./init_project/1_init_project.sh
+source ./init_project/2_code_file_manage.sh
+source ./init_project/3_code_file_wsgi_and_asgi.sh
+source ./init_project/4_code_file_settings.sh
+source ./init_project/5_code_file_urls.sh
 ################################################## == Auth app
 # ===== #
 python3 manage.py startapp authentication
