@@ -1,19 +1,18 @@
-echo "[INFO] - env.build"
+echo "################################################## == Environment"
+# ===== #
 pip install --upgrade pip -q
 pip install django==5.0 -q
 pip install pillow==10.0 -q
 pip install gunicorn==20.0 -q
-
-################################################## == Init
+echo "[SETUP] - env.build"
+echo "################################################## == Init"
 # ===== #
-echo "[INFO] - init.build"
 # django-admin startproject project .
 mkdir project
 mkdir staticfiles
 mkdir templates
-
+echo "[INIT] - project.build"
 # ===== #
-echo "[INFO] - manage.build"
 cat <<text >manage.py
 import os, sys
 from django.core.management import execute_from_command_line
@@ -23,9 +22,8 @@ if __name__ == '__main__':
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
     execute_from_command_line(sys.argv)
 text
-
+echo "[CODE] - manage.build"
 # ===== #
-echo "[INFO] - wsgi.build"
 cat <<text >project/wsgi.py
 import os
 
@@ -35,9 +33,8 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 application = get_wsgi_application()
 text
-
+echo "[CODE] - wsgi.build"
 # ===== #
-echo "[INFO] - asgi.build"
 cat <<text >project/asgi.py
 import os
 
@@ -48,9 +45,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'project.settings')
 
 application = get_asgi_application()
 text
-
+echo "[CODE] - asgi.build"
 # ===== #
-echo "[INFO] - settings.build"
 cat <<text >project/settings.py
 """ Settings """
 import os
@@ -135,9 +131,8 @@ MIDDLEWARE = [
 LOGIN_URL = 'login'
 """ EOF """
 text
-
+echo "[CODE] - settings.build"
 # ===== #
-echo "[INFO] - urls.build"
 cat <<text >project/urls.py
 from django.contrib import admin
 from django.urls import path, include
@@ -160,8 +155,8 @@ urlpatterns += i18n_patterns(
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 text
-
-################################################## == Auth app
+echo "[CODE] - urls.build"
+echo "################################################## == Auth app"
 # ===== #
 python3 manage.py startapp authentication
 
@@ -307,7 +302,7 @@ urlpatterns = [
 ]
 text
 
-################################################## == Core app
+echo "################################################## == Core app"
 # ===== #
 python3 manage.py startapp core
 mkdir templates/core
@@ -354,7 +349,7 @@ cat <<HTML >templates/core/index.html
 Core
 HTML
 
-################################################## == Ecommerce app
+echo "################################################## == Ecommerce app"
 # ===== #
 python3 manage.py startapp ecommerce
 
@@ -481,7 +476,7 @@ urlpatterns = [
 ]
 text
 
-################################################## == Template
+echo "################################################## == Common Template"
 # ===== #
 echo "[DIR] - template.inc.create"
 mkdir templates/inc
@@ -1089,7 +1084,7 @@ languageSelection.addEventListener('change', function () {
 });
 text
 
-################################################## == Makefile
+echo "################################################## == Makefile"
 # ===== #
 echo "[INFO] - makefile.build"
 cat <<text >makefile
@@ -1106,7 +1101,7 @@ clear:
 	find . -mindepth 1 -not -name 'build.sh' -delete
 text
 
-################################################## == Migrate
+echo "################################################## == Migrate"
 # ===== #
 echo "[INFO] - collectstatic"
 python3 manage.py collectstatic --no-input > /dev/null 2>&1
