@@ -155,7 +155,7 @@ urlpatterns = [
 ]
 urlpatterns += i18n_patterns(
     *[path(f'{app}/', include(f'{app}.urls')) for app in settings.APPS],
-    # prefix_default_language = False
+    prefix_default_language = False
 )
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
@@ -201,12 +201,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(_('email'))
     avatar = models.ImageField(_('avatar'), upload_to='avatar')
     address = models.TextField(_('address'))
-    is_seller = models.BooleanField(_('is_seller'), default=False)
     is_staff = models.BooleanField(_('is_staff'), default=False)
     is_active = models.BooleanField(_('is_active'), default=True)
     date_joined = models.DateTimeField(_('date_joined'), default=timezone.now)
     groups = models.ManyToManyField(UserGroup, verbose_name=_('groups'), blank=True)
 
+    is_seller = models.BooleanField(_('is_seller'), default=False)
+    
     objects = UserManager()
 
     EMAIL_FIELD = 'email'
