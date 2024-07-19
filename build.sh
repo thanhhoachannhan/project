@@ -1,10 +1,10 @@
 echo "################################################## == Environment"
 # ================================================== #
 echo "[SETUP] - env.build"
-pip install --upgrade pip -q
-pip install django==5.0 -q
-pip install pillow==10.0 -q
-pip install gunicorn==20.0 -q
+# pip install --upgrade pip -q
+# pip install django==5.0 -q
+# pip install pillow==10.0 -q
+# pip install gunicorn==20.0 -q
 # ================================================== #
 echo "################################################## == Project Init"
 # ================================================== #
@@ -133,6 +133,39 @@ MIDDLEWARE = [
 ]
 """ Redirect """
 LOGIN_URL = 'login'
+""" Loggin """
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    "formatters": {
+        "verbose": {
+            "format": "{levelname} {asctime} {module} {process:d} {thread:d} {message}",
+            "style": "{",
+        },
+        "simple": {
+            "format": "{levelname} {message}",
+            "style": "{",
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': 'log.log',
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        '': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+        },
+    },
+}
 """ EOF """
 text
 # ================================================== #
@@ -218,6 +251,41 @@ class User(AbstractBaseUser, PermissionsMixin):
     class Meta:
         verbose_name = _('user')
         verbose_name_plural = _('users')
+text
+# ================================================== #
+echo "[CODE] - authentication.signals.build"
+cat <<text >authentication/signals.py
+from django.contrib.auth.signals import user_logged_in, user_login_failed, user_logged_out
+from django.dispatch import receiver
+import logging
+
+
+logger = logging.getLogger('django')
+
+@receiver(user_logged_in)
+def post_login(sender, request, user, **kwargs):
+    logger.info(f'User: {user.username} logged in')
+
+@receiver(user_logged_out)
+def post_logout(sender, request, user, **kwargs):
+    logger.info(f'User: {user.username} logged out')
+
+@receiver(user_login_failed)
+def post_login_fail(sender, credentials, request, **kwargs):
+    logger.info(f'Login failed with credentials: {credentials}')
+text
+# ================================================== #
+echo "[CODE] - authentication.apps.build"
+cat <<text >authentication/apps.py
+from django.apps import AppConfig
+
+
+class AuthenticationConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'authentication'
+
+    def ready(self):
+        import authentication.signals
 text
 # ================================================== #
 echo "[CODE] - authentication.admin.build"
