@@ -1,10 +1,10 @@
 echo "################################################## == Environment"
 # ================================================== #
 echo "[SETUP] - env.build"
-pip install --upgrade pip -q
-pip install django==5.0 -q
-pip install pillow==10.0 -q
-pip install gunicorn==20.0 -q
+# pip install --upgrade pip -q
+# pip install django==5.0 -q
+# pip install pillow==10.0 -q
+# pip install gunicorn==20.0 -q
 # ================================================== #
 echo "################################################## == Project Init"
 # ================================================== #
@@ -166,7 +166,7 @@ echo "[INIT] - app.build"
 python3 manage.py startapp authentication
 mkdir authentication/templates
 # ================================================== #
-echo "[INFO] - authentication.models.build"
+echo "[CODE] - authentication.models.build"
 cat <<text >authentication/models.py
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, UserManager, Permission, GroupManager
@@ -220,7 +220,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
 text
 # ================================================== #
-echo "[INFO] - authentication.admin.build"
+echo "[CODE] - authentication.admin.build"
 cat <<text >authentication/admin.py
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
@@ -257,7 +257,7 @@ class CustomGroupAdmin(GroupAdmin):
     )
 text
 # ================================================== #
-echo "[INFO] - authentication.backends.build"
+echo "[CODE] - authentication.backends.build"
 cat <<text >authentication/backends.py
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
@@ -281,7 +281,7 @@ class AuthenticationBackend(ModelBackend):
             return None
 text
 # ================================================== #
-echo "[INFO] - authentication.forms.build"
+echo "[CODE] - authentication.forms.build"
 cat <<text >authentication/forms.py
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
@@ -296,7 +296,7 @@ class LoginForm(AuthenticationForm):
         if not user.is_active: raise exceptions.ValidationError(_('User inactive'), code='inactive')
 text
 # ================================================== #
-echo "[INFO] - authentication.views.build"
+echo "[CODE] - authentication.views.build"
 cat <<text >authentication/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, authenticate
@@ -337,7 +337,7 @@ class Logout(LoginRequiredMixin, View):
         return redirect(next_url)
 text
 # ================================================== #
-echo "[INFO] - authentication.urls.build"
+echo "[CODE] - authentication.urls.build"
 cat <<text >authentication/urls.py
 from django.urls import path
 from authentication.views import Login, Logout
@@ -351,6 +351,7 @@ urlpatterns = [
 ]
 text
 # ================================================== #
+echo "[CODE] - authentication.templates.login.build"
 cat <<HTML >authentication/templates/login.html
 {% load i18n %}
 <form method="post"> {% csrf_token %} {{ form }} <input type="submit" value="login"/> </form>
@@ -358,11 +359,11 @@ HTML
 # ================================================== #
 echo "################################################## == Core app"
 # ================================================== #
+echo "[INIT] - app.build"
 python3 manage.py startapp core
-mkdir templates/core
-
+mkdir core/templates
 # ================================================== #
-echo "[INFO] - core.admin.build"
+echo "[CODE] - core.admin.build"
 cat <<text >core/admin.py
 from django.apps import apps
 from django.contrib import admin
@@ -373,9 +374,8 @@ for model in apps.get_app_config('core').get_models():
     try: admin.site.register(model)
     except AlreadyRegistered: pass
 text
-
 # ================================================== #
-echo "[INFO] - core.views.build"
+echo "[CODE] - core.views.build"
 cat <<text >core/views.py
 from django.shortcuts import render
 from django.views import View
@@ -383,11 +383,10 @@ from django.views import View
 
 class Index(View):
     def get(self, request):
-        return render(request, 'core/index.html')
+        return render(request, 'index.html')
 text
-
 # ================================================== #
-echo "[INFO] - core.urls.build"
+echo "[CODE] - core.urls.build"
 cat <<text >core/urls.py
 from django.urls import path
 from core.views import Index
@@ -399,21 +398,13 @@ urlpatterns = [
     path('index', Index.as_view(), name='index'),
 ]
 text
-
 # ================================================== #
-echo "[INFO] - templates/core/index.html"
-cat <<HTML >templates/core/index.html
+echo "[CODE] - core.templates.index.build"
+cat <<HTML >core/templates/index.html
 Core
 HTML
-
+# ================================================== #
 echo "################################################## == Common Template"
-# ================================================== #
-echo "[DIR] - template.inc.create"
-mkdir templates/inc
-# ================================================== #
-echo "[INFO] - template.base.build"
-cat <<HTML >templates/base.html
-HTML
 # ================================================== #
 mkdir staticfiles/css
 cat <<text >staticfiles/css/main.css
@@ -425,7 +416,7 @@ text
 # ================================================== #
 echo "################################################## == Makefile"
 # ================================================== #
-echo "[INFO] - makefile.build"
+echo "[CODE] - makefile.build"
 cat <<text >makefile
 all:
 	rm -fr migrations
@@ -439,7 +430,7 @@ up:
 clear:
 	find . -mindepth 1 -not -name 'build.sh' -delete
 text
-
+# ================================================== #
 echo "################################################## == Migrate"
 # ================================================== #
 echo "[INFO] - collectstatic"
@@ -449,3 +440,4 @@ python3 manage.py makemigrations core authentication > /dev/null 2>&1
 python3 manage.py migrate > /dev/null 2>&1
 echo "[INFO] - superuser.create"
 python3 manage.py shell -c "from django.contrib.auth import get_user_model; get_user_model().objects.filter(username='admin').exists() or get_user_model().objects.create_superuser('admin', 'admin@admin.com', 'admin');"
+# ================================================== #
